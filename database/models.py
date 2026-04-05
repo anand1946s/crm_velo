@@ -4,17 +4,16 @@ from database.db import Base
 import enum
 
 
-class PersonType(enum.Enum):
+class PersonType(str, enum.Enum):
     MEMBER = "MEMBER"
     ALUMNI = "ALUMNI"
     MENTOR = "MENTOR"
 
 
-class ProjectStatus(enum.Enum):
+class ProjectStatus(str, enum.Enum):
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
     ABORTED = "ABORTED"
-
 
 class Person(Base):
     __tablename__ = "persons"

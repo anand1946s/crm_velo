@@ -4,7 +4,7 @@ from typing import Optional
 from database.models import PersonType
 
 class MembershipBase(BaseModel):
-    doj: date
+    doj: Optional[date] = None
     dol : Optional[date] = None
 
 class MembershipResponse(MembershipBase):

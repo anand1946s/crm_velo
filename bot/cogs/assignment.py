@@ -37,6 +37,41 @@ class PersonSelect(discord.ui.Select):
             view=ProjectSelectView(person_id, projects)
         )
 
+class PassoutSelect(discord.ui.Select):
+    def __init__(self, members: list):
+        options = [
+            discord.SelectOption(label=p["name"], value=str(p["id"]))
+            for p in members[:25]
+        ]
+
+        super().__init__(
+            placeholder="Select member to passout…",
+            min_values=1,
+            max_values=1,
+            options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        person_id = int(self.values[0])
+
+        async with httpx.AsyncClient() as client:
+            r = await client.put(          # ← PUT, not GET
+                f"{API}/persons/{person_id}/passout"   # ← use person_id
+            )
+
+        if r.status_code == 200:
+            msg = "✅ Member moved to ALUMNI."
+        elif r.status_code == 400:
+            msg = f"⚠️ {r.json().get('detail', 'Bad request.')}"
+        elif r.status_code == 404:
+            msg = f"❌ {r.json().get('detail', 'Not found.')}"
+        else:
+            msg = f"❌ Unexpected error ({r.status_code}): {r.text}"
+
+        await interaction.edit_original_response(content=msg, view=None)
+
 
 class ProjectSelect(discord.ui.Select):
     def __init__(self, person_id: int, projects: list):
@@ -78,6 +113,11 @@ class PersonSelectView(discord.ui.View):
         self.add_item(PersonSelect(persons))
 
 
+class PassoutView(discord.ui.View):
+    def __init__(self, members: list):
+        super().__init__(timeout=60)
+        self.add_item(PassoutSelect(members))
+
 class ProjectSelectView(discord.ui.View):
     def __init__(self, person_id: int, projects: list):
         super().__init__(timeout=60)
@@ -110,6 +150,32 @@ class Assignment(commands.Cog):
         await interaction.edit_original_response(
             content="Select a person:",
             view=PersonSelectView(persons)
+        )
+    @discord.app_commands.command(name="passout", description="Convert MEMBER to ALUMNI")
+    async def passout(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        async with httpx.AsyncClient() as client:
+            try:
+                r = await client.get(
+                    f"{API}/persons/",
+                    params={"type": "MEMBER", "limit": 20}
+                )
+                r.raise_for_status()
+                members = r.json()
+            except Exception as e:
+                await interaction.edit_original_response(
+                    content=f"❌ Could not fetch members: {e}"
+                )
+                return
+
+        if not members:
+            await interaction.edit_original_response(content="No active members found.")
+            return
+
+        await interaction.edit_original_response(
+            content="Select member to passout:",
+            view=PassoutView(members)
         )
 
 

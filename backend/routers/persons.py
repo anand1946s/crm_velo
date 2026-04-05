@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from database.db import get_db
 from database.models import Person, Membership, PersonType
 from backend.schemas.person import PersonCreate, PersonUpdate, PersonResponse
+from typing import Optional
+from datetime import date
 
 router = APIRouter(prefix="/persons", tags=["Persons"])
 
@@ -57,8 +59,9 @@ def create_person(data: PersonCreate, db: Session = Depends(get_db)):
 # ── GET /persons ──────────────────────────────────────────────
 
 @router.get("/", response_model=list[PersonResponse])
+@router.get("/", response_model=list[PersonResponse])
 def get_persons(
-    type: PersonType = None,
+    type: Optional[PersonType] = Query(default=None),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=20),
     db: Session = Depends(get_db)
@@ -72,6 +75,30 @@ def get_persons(
 
     return persons
 
+# ── PUT /persons/{id}/passout ─────────────────────────────────
+
+@router.put("/{id}/passout", response_model=PersonResponse)
+def passout(id: int, db: Session = Depends(get_db)):
+    from datetime import date
+
+    person = db.query(Person).filter(Person.id == id).first()
+    if not person:
+        raise HTTPException(status_code=404, detail="Person not found")
+    if person.type != PersonType.MEMBER:
+        raise HTTPException(status_code=400, detail="Only active members can be passed out")
+
+    person.type = PersonType.ALUMNI
+
+    if person.membership:
+        person.membership.dol = date.today()
+    else:
+        # create membership record with just dol
+        membership = Membership(person_id=person.id, dol=date.today())
+        db.add(membership)
+
+    db.commit()
+    db.refresh(person)
+    return person
 
 # ── GET /persons/{id} ─────────────────────────────────────────
 
@@ -119,20 +146,3 @@ def delete_person(id: int, db: Session = Depends(get_db)):
     return {"message": f"Person {person.name} deleted successfully"}
 
 
-# ── PUT /persons/{id}/passout ─────────────────────────────────
-
-@router.put("/{id}/passout", response_model=PersonResponse)
-def passout(id: int, db: Session = Depends(get_db)):
-    person = db.query(Person).filter(Person.id == id).first()
-    if not person:
-        raise HTTPException(status_code=404, detail="Person not found")
-    if person.type != PersonType.MEMBER:
-        raise HTTPException(status_code=400, detail="Only active members can be passed out")
-
-    from datetime import date
-    person.type = PersonType.ALUMNI
-    person.membership.dol = date.today()
-
-    db.commit()
-    db.refresh(person)
-    return person

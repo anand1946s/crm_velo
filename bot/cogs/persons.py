@@ -88,25 +88,68 @@ class TypeSelectView(discord.ui.View):
         self.add_item(TypeSelect())
 
 
+# ───────────────── FILTER SELECT ─────────────────
+
+class PersonTypeFilterSelect(discord.ui.Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(label="MEMBER", value="MEMBER"),
+            discord.SelectOption(label="ALUMNI", value="ALUMNI"),
+            discord.SelectOption(label="MENTOR", value="MENTOR"),
+        ]
+
+        super().__init__(
+            placeholder="Select type to filter",
+            options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        selected_type = self.values[0]
+
+        view = PersonListView(API, person_type=selected_type)
+
+        data = view.fetch()
+
+        await interaction.followup.edit_message(
+            message_id=interaction.message.id,
+            content=view.format(data),
+            view=view
+        )
+
+
+class PersonTypeFilterView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=60)
+        self.add_item(PersonTypeFilterSelect())
+
+
 # ───────────────── PAGINATION VIEW ─────────────────
 
 class PersonListView(discord.ui.View):
-    def __init__(self, api, per_page=20):
+    def __init__(self, api, person_type=None, per_page=5):
         super().__init__(timeout=60)
         self.api = api
         self.page = 0
         self.per_page = per_page
+        self.person_type = person_type
 
     def fetch(self):
         skip = self.page * self.per_page
 
-        r = requests.get(
-            f"{self.api}/persons/",
-            params={"skip": skip, "limit": self.per_page}
-        )
+        params = {
+            "skip": skip,
+            "limit": self.per_page
+        }
+
+        if self.person_type:
+            params["type"] = self.person_type
+
+        r = requests.get(f"{self.api}/persons/", params=params)
 
         if r.status_code != 200:
-            return [{"name": "ERROR", "email": r.text}]
+            return []
 
         return r.json()
 
@@ -181,6 +224,18 @@ class Persons(commands.Cog):
         await interaction.response.send_message(
             content=view.format(data),
             view=view,
+            ephemeral=True
+        )
+
+    @discord.app_commands.command(
+        name="listpersonsbytype",
+        description="Filter persons by type"
+    )
+    async def listpersonsbytype(self, interaction: discord.Interaction):
+
+        await interaction.response.send_message(
+            "Select person type:",
+            view=PersonTypeFilterView(),
             ephemeral=True
         )
 
