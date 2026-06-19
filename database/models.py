@@ -1,7 +1,18 @@
-from sqlalchemy import Column, Integer, String, Date, Enum, ForeignKey, Text, UniqueConstraint
-from sqlalchemy.orm import relationship
-from database.db import Base
 import enum
+
+from sqlalchemy import (
+    Column,
+    Date,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import relationship
+
+from database.db import Base
 
 
 class PersonType(str, enum.Enum):
@@ -14,6 +25,7 @@ class ProjectStatus(str, enum.Enum):
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
     ABORTED = "ABORTED"
+
 
 class Person(Base):
     __tablename__ = "persons"
@@ -46,7 +58,9 @@ class Project(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    status = Column(Enum(ProjectStatus), nullable=False, default=ProjectStatus.IN_PROGRESS)
+    status = Column(
+        Enum(ProjectStatus), nullable=False, default=ProjectStatus.IN_PROGRESS
+    )
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)  # null if still ongoing
 
@@ -61,3 +75,11 @@ class ProjectMember(Base):
 
     person = relationship("Person", back_populates="projects")
     project = relationship("Project", back_populates="members")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True, nullable=False)
+    role = Column(String, nullable=False, default="viewer")
