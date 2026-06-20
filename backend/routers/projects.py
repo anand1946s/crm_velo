@@ -65,11 +65,11 @@ def create_project(data: ProjectCreate, db: Session = Depends(get_db)):
 def get_projects(
     status: ProjectStatus = None,
     skip: int = Query(0, ge=0),
-    limit: int = Query(5, ge=1, le=20),
+    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
 
-    query = db.query(Project)
+    query = db.query(Project).order_by(Project.id.desc())
 
     if status:
         query = query.filter(Project.status == status)

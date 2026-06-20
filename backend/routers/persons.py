@@ -62,10 +62,10 @@ def create_person(data: PersonCreate, db: Session = Depends(get_db)):
 def get_persons(
     type: Optional[PersonType] = Query(default=None),
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=20),
+    limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Person)
+    query = db.query(Person).order_by(Person.id.desc())
 
     if type:
         query = query.filter(Person.type == type)
