@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { 
   FolderGit2, 
   Plus, 
@@ -43,6 +44,8 @@ interface Person {
 }
 
 export default function ProjectsPage() {
+  const { data: session } = useSession();
+  const isViewer = (session?.user as any)?.role === "viewer";
   const { showToast } = useToast();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
   const [projects, setProjects] = useState<Project[]>([]);
@@ -101,6 +104,7 @@ export default function ProjectsPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isViewer) return;
     const payload = {
       name: formData.name,
       description: formData.description || null,
@@ -127,6 +131,7 @@ export default function ProjectsPage() {
   };
 
   const handleStatusChange = async (id: number, status: "IN_PROGRESS" | "COMPLETED" | "ABORTED") => {
+    if (isViewer) return;
     try {
       const res = await fetch(`${API_URL}/projects/${id}`, {
         method: "PUT",
@@ -142,6 +147,7 @@ export default function ProjectsPage() {
   };
 
   const handleDelete = async (id: number) => {
+    if (isViewer) return;
     if (!confirm("Are you sure you want to remove this project?")) return;
 
     try {
@@ -158,6 +164,7 @@ export default function ProjectsPage() {
 
   const handleAssignMember = async (e: React.FormEvent, projectId: number) => {
     e.preventDefault();
+    if (isViewer) return;
     if (!selectedPersonId) return;
 
     const personId = parseInt(selectedPersonId);
@@ -186,6 +193,7 @@ export default function ProjectsPage() {
   };
 
   const handleRemoveMember = async (projectId: number, personId: number) => {
+    if (isViewer) return;
     if (!confirm("Remove this member from project?")) return;
 
     try {
@@ -234,13 +242,15 @@ export default function ProjectsPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-100 hover:bg-indigo-700 transition-all cursor-pointer"
-        >
-          <Plus size={16} />
-          <span>Launch Project</span>
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-100 hover:bg-indigo-700 transition-all cursor-pointer"
+          >
+            <Plus size={16} />
+            <span>Launch Project</span>
+          </button>
+        )}
       </div>
 
       {/* Connection Warning */}
@@ -423,27 +433,29 @@ export default function ProjectsPage() {
                   </p>
 
                   {/* Status update controls */}
-                  <div className="mt-4 flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">Move To:</span>
-                    {[
-                      { status: "IN_PROGRESS", label: "Ongoing", color: "hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200" },
-                      { status: "COMPLETED", label: "Completed", color: "hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200" },
-                      { status: "ABORTED", label: "Aborted", color: "hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200" }
-                    ].map((btn) => (
-                      <button
-                        key={btn.status}
-                        disabled={project.status === btn.status}
-                        onClick={() => handleStatusChange(project.id, btn.status as any)}
-                        className={`text-[10px] font-bold px-2 py-0.5 border border-slate-100 rounded-md transition-colors ${
-                          project.status === btn.status
-                            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                            : `bg-transparent text-slate-600 cursor-pointer ${btn.color}`
-                        }`}
-                      >
-                        {btn.label}
-                      </button>
-                    ))}
-                  </div>
+                  {!isViewer && (
+                    <div className="mt-4 flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">Move To:</span>
+                      {[
+                        { status: "IN_PROGRESS", label: "Ongoing", color: "hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200" },
+                        { status: "COMPLETED", label: "Completed", color: "hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200" },
+                        { status: "ABORTED", label: "Aborted", color: "hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200" }
+                      ].map((btn) => (
+                        <button
+                          key={btn.status}
+                          disabled={project.status === btn.status}
+                          onClick={() => handleStatusChange(project.id, btn.status as any)}
+                          className={`text-[10px] font-bold px-2 py-0.5 border border-slate-100 rounded-md transition-colors ${
+                            project.status === btn.status
+                              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                              : `bg-transparent text-slate-600 cursor-pointer ${btn.color}`
+                          }`}
+                        >
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Collapsible member list */}
@@ -469,13 +481,15 @@ export default function ProjectsPage() {
                                 <p className="font-bold text-slate-800 truncate">{m.name}</p>
                                 <p className="text-[9px] text-slate-400 truncate">{m.email}</p>
                               </div>
-                              <button
-                                title="Remove member"
-                                onClick={() => handleRemoveMember(project.id, m.person_id)}
-                                className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
-                              >
-                                <UserMinus size={12} />
-                              </button>
+                              {!isViewer && (
+                                <button
+                                  title="Remove member"
+                                  onClick={() => handleRemoveMember(project.id, m.person_id)}
+                                  className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                                >
+                                  <UserMinus size={12} />
+                                </button>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -484,62 +498,66 @@ export default function ProjectsPage() {
                       )}
 
                       {/* Add member section */}
-                      <div className="pt-2">
-                        {assigningProjectId === project.id ? (
-                          <form onSubmit={(e) => handleAssignMember(e, project.id)} className="flex items-center gap-2">
-                            <select
-                              required
-                              value={selectedPersonId}
-                              onChange={(e) => setSelectedPersonId(e.target.value)}
-                              className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                            >
-                              <option value="">Choose Developer...</option>
-                              {people
-                                // Avoid listing people already assigned
-                                .filter((person) => !project.members?.some((m) => m.person_id === person.id))
-                                .map((person) => (
-                                  <option key={person.id} value={person.id}>
-                                    {person.name} ({person.type})
-                                  </option>
-                                ))}
-                            </select>
+                      {!isViewer && (
+                        <div className="pt-2">
+                          {assigningProjectId === project.id ? (
+                            <form onSubmit={(e) => handleAssignMember(e, project.id)} className="flex items-center gap-2">
+                              <select
+                                required
+                                value={selectedPersonId}
+                                onChange={(e) => setSelectedPersonId(e.target.value)}
+                                className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
+                              >
+                                <option value="">Choose Developer...</option>
+                                {people
+                                  // Avoid listing people already assigned
+                                  .filter((person) => !project.members?.some((m) => m.person_id === person.id))
+                                  .map((person) => (
+                                    <option key={person.id} value={person.id}>
+                                      {person.name} ({person.type})
+                                    </option>
+                                  ))}
+                              </select>
+                              <button
+                                type="submit"
+                                className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 text-xs cursor-pointer"
+                              >
+                                Assign
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setAssigningProjectId(null); setSelectedPersonId(""); }}
+                                className="rounded-xl border border-slate-200 hover:bg-slate-50 px-3 py-2 text-xs text-slate-500 cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                            </form>
+                          ) : (
                             <button
-                              type="submit"
-                              className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 text-xs cursor-pointer"
+                              onClick={() => setAssigningProjectId(project.id)}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
                             >
-                              Assign
+                              <UserPlus size={12} />
+                              <span>Assign Developer</span>
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => { setAssigningProjectId(null); setSelectedPersonId(""); }}
-                              className="rounded-xl border border-slate-200 hover:bg-slate-50 px-3 py-2 text-xs text-slate-500 cursor-pointer"
-                            >
-                              Cancel
-                            </button>
-                          </form>
-                        ) : (
-                          <button
-                            onClick={() => setAssigningProjectId(project.id)}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
-                          >
-                            <UserPlus size={12} />
-                            <span>Assign Developer</span>
-                          </button>
-                        )}
-                      </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Footer actions */}
-                  <div className="pt-2 flex justify-end">
-                    <button
-                      onClick={() => handleDelete(project.id)}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
-                    >
-                      <Trash2 size={12} />
-                      <span>Remove Project</span>
-                    </button>
-                  </div>
+                  {!isViewer && (
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        onClick={() => handleDelete(project.id)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                      >
+                        <Trash2 size={12} />
+                        <span>Remove Project</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );

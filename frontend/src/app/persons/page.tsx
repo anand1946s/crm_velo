@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { 
   Users, 
   Search, 
@@ -36,6 +37,8 @@ interface Person {
 
 // Separate component to safely use searchParams inside a Suspense boundary
 function PersonsContent() {
+  const { data: session } = useSession();
+  const isViewer = (session?.user as any)?.role === "viewer";
   const { showToast } = useToast();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
   const searchParams = useSearchParams();
@@ -89,6 +92,7 @@ function PersonsContent() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isViewer) return;
     setErrorMsg(null);
 
     const payload = {
@@ -123,6 +127,7 @@ function PersonsContent() {
   };
 
   const handlePassout = async (id: number) => {
+    if (isViewer) return;
     try {
       const res = await fetch(`${API_URL}/persons/${id}/passout`, {
         method: "PUT",
@@ -136,6 +141,7 @@ function PersonsContent() {
   };
 
   const handleDelete = async (id: number) => {
+    if (isViewer) return;
     if (!confirm("Are you sure you want to delete this person profile?")) return;
 
     try {
@@ -195,13 +201,15 @@ function PersonsContent() {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-100 hover:bg-indigo-700 transition-all cursor-pointer"
-        >
-          <UserPlus size={16} />
-          <span>Add Contact</span>
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-100 hover:bg-indigo-700 transition-all cursor-pointer"
+          >
+            <UserPlus size={16} />
+            <span>Add Contact</span>
+          </button>
+        )}
       </div>
 
       {/* Connection Warning Banner */}
@@ -408,7 +416,7 @@ function PersonsContent() {
                   <th className="px-6 py-4">Contact Information</th>
                   <th className="px-6 py-4">Status & Details</th>
                   <th className="px-6 py-4">Timelines</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  {!isViewer && <th className="px-6 py-4 text-right">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
@@ -476,26 +484,28 @@ function PersonsContent() {
                       )}
                     </td>
 
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {person.type === "MEMBER" && (
+                     {!isViewer && (
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {person.type === "MEMBER" && (
+                            <button
+                              title="Mark as Alumni"
+                              onClick={() => handlePassout(person.id)}
+                              className="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all cursor-pointer"
+                            >
+                              <GraduationCap size={16} />
+                            </button>
+                          )}
                           <button
-                            title="Mark as Alumni"
-                            onClick={() => handlePassout(person.id)}
-                            className="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all cursor-pointer"
+                            title="Delete Contact"
+                            onClick={() => handleDelete(person.id)}
+                            className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
                           >
-                            <GraduationCap size={16} />
+                            <Trash2 size={16} />
                           </button>
-                        )}
-                        <button
-                          title="Delete Contact"
-                          onClick={() => handleDelete(person.id)}
-                          className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

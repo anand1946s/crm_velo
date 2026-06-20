@@ -110,15 +110,15 @@ export default function DashboardPage() {
         <div className="absolute bottom-[-50%] right-[20%] h-[250px] w-[250px] rounded-full bg-violet-600/20 blur-[80px] pointer-events-none" />
 
         <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wide text-indigo-200 backdrop-blur-md mb-4 border border-white/10">
+          {/* <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wide text-indigo-200 backdrop-blur-md mb-4 border border-white/10">
             <Sparkles size={12} className="text-amber-400" />
             <span>Welcome to VeloWiki</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">
-            VeloCET CRM Workspace
+          </div> */}
+          <h1 className="font-manrope font-[800] text-3xl tracking-tight md:text-4xl">
+            VeloCET Club Database
           </h1>
-          <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed">
-            Monitor members, alumni milestones, and engineering project lifecycles. Access active workspaces, project logs, and directory registries instantly.
+          <p className="font-manrope font-[500] mt-3 text-slate-300 text-sm md:text-base leading-relaxed">
+            Monitor Members, Alumni and Projects
           </p>
         </div>
 
@@ -201,7 +201,7 @@ export default function DashboardPage() {
         {/* Recent Projects Column */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold tracking-tight text-slate-900">Engineering Projects</h2>
+            <h2 className="text-xl font-bold tracking-tight text-slate-900">Projects</h2>
             <Link href="/projects" className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
               <span>View Board</span>
               <ArrowRight size={14} />
@@ -228,7 +228,7 @@ export default function DashboardPage() {
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
                   <span className="flex items-center gap-1">
                     <Calendar size={12} />
-                    Active Pipeline
+                    Contributers
                   </span>
                   <span>{proj.members ? proj.members.length : 0} members</span>
                 </div>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
         {/* Recent Directory Registry */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold tracking-tight text-slate-900">Recent Directory</h2>
+            <h2 className="text-xl font-bold tracking-tight text-slate-900">Recent </h2>
             <Link href="/persons" className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
               <span>Full List</span>
               <ArrowRight size={14} />

@@ -3,13 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { 
   LayoutDashboard, 
   Users, 
   FolderGit2, 
   GraduationCap, 
   Settings,
-  Menu
+  Menu,
+  LogOut
 } from "lucide-react";
 
 interface SidebarProps {
@@ -20,6 +22,7 @@ export default function Sidebar({ onToggle }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeType = searchParams.get("type");
+  const { data: session } = useSession();
 
   // Helper to determine if link is active
   const isActive = (href: string, isAlumni = false) => {
@@ -98,9 +101,11 @@ export default function Sidebar({ onToggle }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex flex-1 flex-col gap-1.5">
-          {navItems.map((item) => {
-            const active = isActive(item.href, item.isAlumni);
-            const Icon = item.icon;
+          {navItems
+            .filter((item) => item.name !== "Admin" || (session?.user as any)?.role === "admin")
+            .map((item) => {
+              const active = isActive(item.href, item.isAlumni);
+              const Icon = item.icon;
 
             return (
               <Link
@@ -121,15 +126,45 @@ export default function Sidebar({ onToggle }: SidebarProps) {
 
         {/* Footer */}
         <div className="mt-auto px-2">
-          <div className="flex items-center gap-3 p-2 rounded-2xl bg-slate-50 border border-slate-100">
-            <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold text-sm">
-              VC
+          {session ? (
+            <div className="flex items-center gap-3 p-2 rounded-2xl bg-slate-50 border border-slate-100">
+              {session.user?.image ? (
+                <div className="relative w-8 h-8 rounded-xl overflow-hidden shrink-0 border border-slate-200">
+                  <Image
+                    src={session.user.image}
+                    alt={session.user.name || "User Avatar"}
+                    fill
+                    sizes="32px"
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold text-sm shrink-0">
+                  {session.user?.name ? session.user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() : "VC"}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-slate-900 truncate">{session.user?.name || "Velo User"}</p>
+                <p className="text-[10px] text-slate-500 truncate">{session.user?.email || ""}</p>
+              </div>
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer shrink-0"
+                title="Sign Out"
+              >
+                <LogOut size={16} />
+              </button>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-slate-900 truncate">Velo Admin</p>
-              <p className="text-[10px] text-slate-500 truncate">admin@velocet.org</p>
+          ) : (
+            <div className="flex items-center gap-3 p-2 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold text-sm shrink-0">
+                VC
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-slate-900 truncate">Not Signed In</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </aside>
