@@ -25,8 +25,7 @@ function LoginForm() {
     <div className="min-h-[70vh] flex flex-col items-center justify-center py-6 px-4 sm:px-6 lg:px-8 animate-fadeIn">
       <div className="max-w-md w-full space-y-8 bg-white border border-slate-200 p-8 rounded-3xl shadow-sm relative overflow-hidden">
         {/* Glow ambient backgrounds */}
-        <div className="absolute top-[-50%] right-[-10%] h-[180px] w-[180px] rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-[-50%] left-[-10%] h-[180px] w-[180px] rounded-full bg-violet-500/10 blur-3xl pointer-events-none" />
+
 
         {/* Logo and title */}
         <div className="text-center relative z-10">
@@ -39,17 +38,17 @@ function LoginForm() {
               className="object-cover"
             />
           </div>
-          
+
           <div className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700 tracking-wide uppercase mb-3">
-            <Sparkles size={10} className="text-amber-500" />
-            <span>VeloCET Core Registry</span>
+
+            <span>VeloCET Club Database</span>
           </div>
 
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
             Sign in to VeloWiki
           </h2>
           <p className="mt-1.5 text-xs font-medium text-slate-500">
-            Secure client ledger administration database
+
           </p>
         </div>
 

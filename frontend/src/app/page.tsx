@@ -104,10 +104,9 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-slate-900 px-8 py-10 text-white shadow-lg">
+      <div className="relative overflow-hidden rounded-3xl bg-striped-dark px-6 py-8 md:px-8 md:py-10 text-white shadow-lg">
         {/* Decorative ambient blobs */}
-        <div className="absolute top-[-50%] right-[-10%] h-[300px] w-[300px] rounded-full bg-indigo-600/30 blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-[-50%] right-[20%] h-[250px] w-[250px] rounded-full bg-violet-600/20 blur-[80px] pointer-events-none" />
+
 
         <div className="relative z-10 max-w-2xl">
           {/* <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wide text-indigo-200 backdrop-blur-md mb-4 border border-white/10">
@@ -141,21 +140,21 @@ export default function DashboardPage() {
 
 
       {/* Metric Cards Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
         {[
           {
-            title: "Active Members",
+            title: " Members",
             value: stats.members,
             icon: UserCheck,
             color: "indigo",
-            desc: "Active student developers"
+            desc: "Active student members"
           },
           {
-            title: "Alumni Network",
+            title: "Alumni",
             value: stats.alumni,
             icon: GraduationCap,
             color: "emerald",
-            desc: "Passed out researchers"
+            desc: "Graduates"
           },
           {
             title: "Mentors",
@@ -169,18 +168,18 @@ export default function DashboardPage() {
             value: stats.projects,
             icon: FolderGit2,
             color: "sky",
-            desc: "In progress & completed"
+            desc: ""
           }
         ].map((stat, idx) => {
           const Icon = stat.icon;
           return (
-            <div key={idx} className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+            <div key={idx} className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{stat.title}</p>
                   <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{stat.value}</h3>
                 </div>
-                <div className={`rounded-2xl p-3.5 bg-${stat.color}-50 text-${stat.color}-600 transition-colors duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600`}>
+                <div className={`rounded-2xl p-3.5 bg-${stat.color}-50 text-${stat.color}-600`}>
                   {/* Tailwind arbitrary styling backup classes */}
                   <Icon size={24} className={`
                     ${stat.color === 'indigo' ? 'text-indigo-600' : ''}

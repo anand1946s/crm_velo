@@ -5,6 +5,17 @@
   font-family: 'Manrope', sans-serif;
 }
 
+.bg-striped-dark {
+  background-color: #0f172a;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #0b0f19,
+    #0b0f19 12px,
+    #131a2c 12px,
+    #131a2c 24px
+  );
+}
+
 html,
 body {
   width: 100%;
