@@ -59,7 +59,6 @@ def create_person(data: PersonCreate, db: Session = Depends(get_db)):
 # ── GET /persons ──────────────────────────────────────────────
 
 @router.get("/", response_model=list[PersonResponse])
-@router.get("/", response_model=list[PersonResponse])
 def get_persons(
     type: Optional[PersonType] = Query(default=None),
     skip: int = Query(0, ge=0),
