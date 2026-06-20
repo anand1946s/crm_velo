@@ -1,27 +1,27 @@
 import "./globals.css";
-import Link from "next/link";
+import Sidebar from "../components/Sidebar";
+
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body>
-        <div className="app-container">
-          <aside className="sidebar">
-            <h2>VeloWiki</h2>
+        <div className="h-screen p-5">
+          <div className="flex h-full gap-5">
 
-            <nav>
-              <Link href="/">Dashboard</Link>
-              <Link href="/persons">Persons</Link>
-              <Link href="/projects">Projects</Link>
-              <Link href="/admin">Admin</Link>
-            </nav>
-          </aside>
+            <Sidebar />
 
-          <main className="content">{children}</main>
+            <main className="flex-1 overflow-auto rounded-3xl border border-stone-200 bg-white shadow-sm">
+              <div className="p-8">
+                {children}
+              </div>
+            </main>
+
+          </div>
         </div>
       </body>
     </html>
