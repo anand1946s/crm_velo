@@ -5,12 +5,13 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://127.0.0.1:8000/:path*",
+        destination: `${process.env.BACKEND_API_URL || "http://127.0.0.1:8000"}/:path*`,
       },
     ];
   },
 };
 
 export default nextConfig;
+
 
 

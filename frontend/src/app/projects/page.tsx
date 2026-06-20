@@ -17,6 +17,7 @@ import {
   ChevronUp,
   AlertCircle
 } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
 
 interface ProjectMember {
   person_id: number;
@@ -42,6 +43,8 @@ interface Person {
 }
 
 export default function ProjectsPage() {
+  const { showToast } = useToast();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
   const [projects, setProjects] = useState<Project[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,8 +70,8 @@ export default function ProjectsPage() {
     setLoading(true);
     setErrorMsg(null);
     try {
-      const projRes = await fetch("/api/projects/");
-      const peopleRes = await fetch("/api/persons/");
+      const projRes = await fetch(`${API_URL}/projects/`);
+      const peopleRes = await fetch(`${API_URL}/persons/`);
       if (!projRes.ok || !peopleRes.ok) {
         throw new Error("Backend connection failed");
       }
@@ -81,7 +84,7 @@ export default function ProjectsPage() {
       console.warn("Backend API not reachable.", err);
       setProjects([]);
       setPeople([]);
-      setErrorMsg("Failed to connect to backend projects database at http://localhost:8000. Ensure uvicorn is running.");
+      setErrorMsg(`Failed to connect to backend projects database at ${API_URL}. Ensure uvicorn is running.`);
     } finally {
       setLoading(false);
     }
@@ -107,13 +110,14 @@ export default function ProjectsPage() {
     };
 
     try {
-      const res = await fetch("/api/projects/", {
+      const res = await fetch(`${API_URL}/projects/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Failed to register project.");
+      showToast(`Project "${payload.name}" launched successfully!`, "success");
       await loadData();
       setShowCreateForm(false);
       resetForm();
@@ -124,12 +128,13 @@ export default function ProjectsPage() {
 
   const handleStatusChange = async (id: number, status: "IN_PROGRESS" | "COMPLETED" | "ABORTED") => {
     try {
-      const res = await fetch(`/api/projects/${id}`, {
+      const res = await fetch(`${API_URL}/projects/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
       if (!res.ok) throw new Error("Failed to update status.");
+      showToast("Project status updated successfully!", "success");
       await loadData();
     } catch (err: any) {
       alert(err.message);
@@ -140,10 +145,11 @@ export default function ProjectsPage() {
     if (!confirm("Are you sure you want to remove this project?")) return;
 
     try {
-      const res = await fetch(`/api/projects/${id}`, {
+      const res = await fetch(`${API_URL}/projects/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete project.");
+      showToast("Project removed successfully!", "success");
       await loadData();
     } catch (err: any) {
       alert(err.message);
@@ -159,7 +165,7 @@ export default function ProjectsPage() {
     if (!person) return;
 
     try {
-      const res = await fetch(`/api/projects/${projectId}/members`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}/members`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ person_id: personId }),
@@ -170,6 +176,7 @@ export default function ProjectsPage() {
         throw new Error(errorJson.detail || "Failed to assign member.");
       }
 
+      showToast("Developer assigned successfully!", "success");
       await loadData();
       setAssigningProjectId(null);
       setSelectedPersonId("");
@@ -182,16 +189,18 @@ export default function ProjectsPage() {
     if (!confirm("Remove this member from project?")) return;
 
     try {
-      const res = await fetch(`/api/projects/${projectId}/members/${personId}`, {
+      const res = await fetch(`${API_URL}/projects/${projectId}/members/${personId}`, {
         method: "DELETE",
       });
 
       if (!res.ok) throw new Error("Failed to remove member.");
+      showToast("Developer unassigned successfully!", "success");
       await loadData();
     } catch (err: any) {
       alert(err.message);
     }
   };
+
 
   const resetForm = () => {
     setFormData({

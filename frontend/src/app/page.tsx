@@ -31,6 +31,8 @@ interface Project {
 }
 
 export default function DashboardPage() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+
   const [stats, setStats] = useState({
     members: 0,
     alumni: 0,
@@ -45,8 +47,8 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        const personsRes = await fetch("http://127.0.0.1:8000/persons/");
-        const projectsRes = await fetch("http://127.0.0.1:8000/projects/");
+        const personsRes = await fetch(`${API_URL}/persons/`);
+        const projectsRes = await fetch(`${API_URL}/projects/`);
         if (!personsRes.ok || !projectsRes.ok) {
           throw new Error("Failed to fetch from backend");
         }
@@ -78,11 +80,12 @@ export default function DashboardPage() {
         });
         setRecentPeople([]);
         setRecentProjects([]);
-        setErrorMsg("Failed to connect to backend database registry at http://localhost:8000. Ensure your python virtual environment uvicorn server is active.");
+        setErrorMsg(`Failed to connect to backend database registry at ${API_URL}. Ensure your python virtual environment uvicorn server is active.`);
       } finally {
         setLoading(false);
       }
     }
+
 
     loadDashboardData();
   }, []);

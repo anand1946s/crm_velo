@@ -12,7 +12,11 @@ import {
   Menu
 } from "lucide-react";
 
-export default function Sidebar() {
+interface SidebarProps {
+  onToggle?: () => void;
+}
+
+export default function Sidebar({ onToggle }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeType = searchParams.get("type");
@@ -81,7 +85,10 @@ export default function Sidebar() {
             </div>
           </div>
 
-          <button className="rounded-xl p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+          <button 
+            onClick={onToggle}
+            className="rounded-xl p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer"
+          >
             <Menu size={18} />
           </button>
         </div>

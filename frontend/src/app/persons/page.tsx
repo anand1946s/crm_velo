@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   AlertCircle
 } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
 
 interface Membership {
   id: number;
@@ -35,6 +36,8 @@ interface Person {
 
 // Separate component to safely use searchParams inside a Suspense boundary
 function PersonsContent() {
+  const { showToast } = useToast();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
   const searchParams = useSearchParams();
   const router = useRouter();
   const filterType = searchParams.get("type"); // MEMBER, ALUMNI, MENTOR
@@ -60,7 +63,7 @@ function PersonsContent() {
     setLoading(true);
     setErrorMsg(null);
     try {
-      const response = await fetch("/api/persons/");
+      const response = await fetch(`${API_URL}/persons/`);
       if (!response.ok) {
         throw new Error("Unable to fetch persons from backend");
       }
@@ -68,7 +71,7 @@ function PersonsContent() {
       setPersons(data);
     } catch (err) {
       console.warn("Backend API offline.", err);
-      setErrorMsg("Failed to connect to backend registry at http://localhost:8000. Ensure uvicorn server is active.");
+      setErrorMsg(`Failed to connect to backend registry at ${API_URL}. Ensure uvicorn server is active.`);
       setPersons([]);
     } finally {
       setLoading(false);
@@ -99,7 +102,7 @@ function PersonsContent() {
     };
 
     try {
-      const res = await fetch("/api/persons/", {
+      const res = await fetch(`${API_URL}/persons/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -110,6 +113,7 @@ function PersonsContent() {
         throw new Error(errJson.detail || "Error creating person profile.");
       }
 
+      showToast(`${payload.name} registered successfully!`, "success");
       await loadPeople();
       setShowForm(false);
       resetForm();
@@ -120,10 +124,11 @@ function PersonsContent() {
 
   const handlePassout = async (id: number) => {
     try {
-      const res = await fetch(`/api/persons/${id}/passout`, {
+      const res = await fetch(`${API_URL}/persons/${id}/passout`, {
         method: "PUT",
       });
       if (!res.ok) throw new Error("Failed to process passout status.");
+      showToast("Member marked as Alumni successfully!", "success");
       await loadPeople();
     } catch (err: any) {
       alert(err.message);
@@ -134,15 +139,17 @@ function PersonsContent() {
     if (!confirm("Are you sure you want to delete this person profile?")) return;
 
     try {
-      const res = await fetch(`/api/persons/${id}`, {
+      const res = await fetch(`${API_URL}/persons/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete person.");
+      showToast("Contact profile deleted successfully!", "success");
       await loadPeople();
     } catch (err: any) {
       alert(err.message);
     }
   };
+
 
   const resetForm = () => {
     setFormData({
